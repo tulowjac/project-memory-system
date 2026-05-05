@@ -1,0 +1,4 @@
+display_name: "Project Memory System: Subtasks"
+short_description: "Discover parallelizable sub-agent task candidates"
+default_prompt:
+  - "Use $project-memory-system-subtasks to discover sub-agent tasks for this project"

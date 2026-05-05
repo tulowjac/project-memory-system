@@ -1,0 +1,4 @@
+display_name: "Project Memory System: Setup"
+short_description: "Initialize a project folder as a cross-agent memory system"
+default_prompt:
+  - "Use $project-memory-system-setup to set up this folder as a cross-agent memory system"

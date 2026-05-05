@@ -1,0 +1,4 @@
+display_name: "Project Memory System: Add Agent Profile"
+short_description: "Add an agent or tool compatibility profile to the project"
+default_prompt:
+  - "Use $project-memory-system-add-agent to add an agent profile to this project"

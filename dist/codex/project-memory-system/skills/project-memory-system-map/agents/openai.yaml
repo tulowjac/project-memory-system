@@ -1,0 +1,4 @@
+display_name: "Project Memory System: Map"
+short_description: "Render a visual tree of the project folder structure in chat"
+default_prompt:
+  - "Use $project-memory-system-map to show me a visual map of this project folder"

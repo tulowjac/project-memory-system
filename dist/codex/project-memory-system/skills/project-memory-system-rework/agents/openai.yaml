@@ -1,0 +1,4 @@
+display_name: "Project Memory System: Rework Sources"
+short_description: "Reconcile newly added source files and update project memory"
+default_prompt:
+  - "Use $project-memory-system-rework to reconcile new source files with project memory"

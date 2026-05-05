@@ -1,0 +1,4 @@
+display_name: "Project Memory System: Find"
+short_description: "Find files by semantic description and return file paths"
+default_prompt:
+  - "Use $project-memory-system-find to find the file I am looking for"

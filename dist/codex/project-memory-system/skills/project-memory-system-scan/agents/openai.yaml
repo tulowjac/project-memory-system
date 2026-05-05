@@ -1,0 +1,4 @@
+display_name: "Project Memory System: Scan"
+short_description: "Read-only map of the project memory environment and source files"
+default_prompt:
+  - "Use $project-memory-system-scan to scan this project memory environment"
