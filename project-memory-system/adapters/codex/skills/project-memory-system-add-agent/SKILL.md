@@ -1,6 +1,8 @@
 ---
+name: project-memory-system-add-agent
 description: Add or update an AI tool/agent profile without duplicating canonical project instructions.
 ---
+
 
 # Add Agent Profile
 

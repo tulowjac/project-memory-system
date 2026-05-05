@@ -10,14 +10,18 @@ import sys
 from pathlib import Path
 
 TARGETS = {"codex", "claude-code", "antigravity", "portable"}
-COMMANDS = ["setup.md", "scan.md", "rework.md", "add-agent.md", "subtasks.md"]
+COMMANDS = ["setup.md", "scan.md", "rework.md", "add-agent.md", "subtasks.md", "map.md", "find.md"]
 CODEX_COMMAND_NAMES = {
     "/setup": "/project-memory-system:setup",
     "/scan": "/project-memory-system:scan",
     "/rework": "/project-memory-system:rework",
     "/add-agent": "/project-memory-system:add-agent",
     "/subtasks": "/project-memory-system:subtasks",
+    "/map": "/project-memory-system:map",
+    "/find": "/project-memory-system:find",
 }
+# Commands packaged as Codex skills (Codex Desktop indexes skills/, not commands/)
+CODEX_SKILL_COMMANDS = ["setup", "scan", "rework", "add-agent", "subtasks", "map", "find"]
 SCRIPT_NAMES = [
     "inspect_project.py",
     "extract_docx.py",
@@ -83,21 +87,24 @@ This build is packaged for Codex.
 Expected entry points:
 
 - `.codex-plugin/plugin.json`
-- `commands/`
-- `skills/project-memory-system/`
+- `commands/` (reference only — Codex Desktop does not index these)
+- `skills/project-memory-system/` (overview skill)
+- `skills/project-memory-system-<cmd>/` (one skill per command workflow)
 - `scripts/`
 
 Recommended first prompt:
 
 - Set up this folder as a cross-agent project memory system
 
-Codex slash commands are namespaced by plugin:
+Codex surfaces each command as a namespaced skill in the picker:
 
-- `/project-memory-system:setup`
-- `/project-memory-system:scan`
-- `/project-memory-system:rework`
-- `/project-memory-system:add-agent`
-- `/project-memory-system:subtasks`
+- `$project-memory-system-setup`
+- `$project-memory-system-scan`
+- `$project-memory-system-rework`
+- `$project-memory-system-add-agent`
+- `$project-memory-system-subtasks`
+- `$project-memory-system-map`
+- `$project-memory-system-find`
 """
     if target == "claude-code":
         return """# Install
@@ -189,8 +196,58 @@ def claude_manifest() -> dict:
     }
 
 
+def install_codex_skills(dest: Path, force: bool, dry_run: bool, actions: list[str]) -> None:
+    """Create a namespaced skill folder for each command workflow (Codex indexes skills, not commands/)."""
+    root = package_root()
+    display_names = {
+        "setup": "Project Memory System: Setup",
+        "scan": "Project Memory System: Scan",
+        "rework": "Project Memory System: Rework Sources",
+        "add-agent": "Project Memory System: Add Agent Profile",
+        "subtasks": "Project Memory System: Subtasks",
+        "map": "Project Memory System: Map",
+        "find": "Project Memory System: Find",
+    }
+    short_descs = {
+        "setup": "Initialize a project folder as a cross-agent memory system",
+        "scan": "Read-only map of the project memory environment and source files",
+        "rework": "Reconcile newly added source files and update project memory",
+        "add-agent": "Add an agent or tool compatibility profile to the project",
+        "subtasks": "Discover parallelizable sub-agent task candidates",
+        "map": "Render a visual tree of the project folder structure in chat",
+        "find": "Find files by semantic description and return file paths",
+    }
+    for cmd in CODEX_SKILL_COMMANDS:
+        skill_id = f"project-memory-system-{cmd}"
+        skill_dir = dest / "skills" / skill_id
+        cmd_src = root / "core" / "commands" / f"{cmd}.md"
+        if not cmd_src.exists():
+            actions.append(f"warning: source command not found {cmd_src}")
+            continue
+        cmd_text = cmd_src.read_text(encoding="utf-8")
+        # Extract description from frontmatter
+        parts = cmd_text.split("---", 2)
+        orig_desc = ""
+        if len(parts) >= 2:
+            for line in parts[1].splitlines():
+                if line.startswith("description:"):
+                    orig_desc = line[len("description:"):].strip()
+                    break
+        body = parts[2].lstrip("\n") if len(parts) >= 3 else cmd_text
+        skill_md = f"---\nname: {skill_id}\ndescription: {orig_desc}\n---\n\n{body}"
+        openai_yaml = (
+            f'display_name: "{display_names[cmd]}"\n'
+            f'short_description: "{short_descs[cmd]}"\n'
+            f"default_prompt:\n"
+            f'  - "Use ${skill_id} for this project memory workflow"\n'
+        )
+        write_text(skill_dir / "SKILL.md", skill_md, force, dry_run, actions)
+        write_text(skill_dir / "agents" / "openai.yaml", openai_yaml, force, dry_run, actions)
+
+
 def install_codex(dest: Path, force: bool, dry_run: bool, actions: list[str]) -> None:
     install_common(dest, force, dry_run, actions)
+    install_codex_skills(dest, force, dry_run, actions)
     namespace_codex_commands(dest, dry_run, actions)
     write_json(dest / ".codex-plugin" / "plugin.json", codex_manifest(), force, dry_run, actions)
     write_text(dest / "INSTALL.md", target_install_text("codex"), force, dry_run, actions)
@@ -232,6 +289,17 @@ def validate(dest: Path, target: str) -> list[str]:
             errors.append(f"invalid skill frontmatter {skill}")
     if target == "codex" and not (dest / ".codex-plugin" / "plugin.json").exists():
         errors.append("missing Codex plugin manifest")
+    if target == "codex":
+        for cmd in CODEX_SKILL_COMMANDS:
+            skill_id = f"project-memory-system-{cmd}"
+            skill_md = dest / "skills" / skill_id / "SKILL.md"
+            openai_yaml = dest / "skills" / skill_id / "agents" / "openai.yaml"
+            if not skill_md.exists():
+                errors.append(f"missing Codex command skill {skill_md}")
+            elif f"name: {skill_id}" not in skill_md.read_text(encoding="utf-8", errors="replace"):
+                errors.append(f"incorrect skill name frontmatter in {skill_md}")
+            if not openai_yaml.exists():
+                errors.append(f"missing Codex skill display metadata {openai_yaml}")
     if target == "claude-code" and not (dest / ".claude-plugin" / "plugin.json").exists():
         errors.append("missing Claude plugin manifest")
     for script in SCRIPT_NAMES:
