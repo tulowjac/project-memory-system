@@ -1,0 +1,35 @@
+{
+  "name": "project-memory-system",
+  "version": "0.1.0",
+  "description": "Portable multi-agent project memory setup, scanning, rework, and agent profile workflows.",
+  "author": {
+    "name": "Jacques Tulowitzky"
+  },
+  "license": "MIT",
+  "keywords": [
+    "agents",
+    "memory",
+    "project-setup",
+    "knowledge-base",
+    "slash-commands"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Project Memory System",
+    "shortDescription": "Structure folders into portable multi-agent memory systems.",
+    "longDescription": "Creates and maintains cross-tool project memory environments for Codex, Claude Code, Antigravity, and portable AI-agent workflows.",
+    "developerName": "Jacques Tulowitzky",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Set up this folder as a cross-agent project memory system",
+      "Scan this project memory environment",
+      "Rework memory after I added new raw data",
+      "Show me a map of this project folder",
+      "Find the file with the client brief"
+    ]
+  }
+}

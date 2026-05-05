@@ -1,0 +1,6 @@
+display_name: Project Memory System
+short_description: Structure folders into portable multi-agent memory systems.
+default_prompt:
+  - Set up this folder as a cross-agent project memory system
+  - Scan this project environment and show me the memory structure
+  - Rework the project memory after I added new raw data

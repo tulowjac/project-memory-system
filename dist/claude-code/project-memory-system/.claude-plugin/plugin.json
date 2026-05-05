@@ -1,0 +1,8 @@
+{
+  "name": "project-memory-system",
+  "version": "0.1.0",
+  "description": "Cross-agent project memory setup, scan, rework, subtask discovery, and agent profile commands.",
+  "author": {
+    "name": "Jacques Tulowitzky"
+  }
+}
